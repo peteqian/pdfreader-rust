@@ -32,7 +32,8 @@ impl XrefTable {
         let xref_section = &data[xref_offset..];
 
         // Find "xref" keyword
-        let xref_pos = xref_section.iter()
+        let xref_pos = xref_section
+            .iter()
             .position(|&b| b == b'x')
             .and_then(|pos| {
                 if xref_section[pos..].starts_with(b"xref") {
@@ -59,7 +60,8 @@ impl XrefTable {
             }
 
             // Read starting object number and count
-            let line_end = xref_section[pos..].iter()
+            let line_end = xref_section[pos..]
+                .iter()
                 .position(|&b| b == b'\n' || b == b'\r')
                 .unwrap_or(xref_section.len() - pos);
 
@@ -67,13 +69,16 @@ impl XrefTable {
             let parts: Vec<&str> = line.split_whitespace().collect();
 
             if parts.len() >= 2 {
-                if let (Ok(start), Ok(count)) = (parts[0].parse::<u32>(), parts[1].parse::<usize>()) {
+                if let (Ok(start), Ok(count)) = (parts[0].parse::<u32>(), parts[1].parse::<usize>())
+                {
                     pos += line_end + 1;
 
                     // Read entries
                     for i in 0..count {
                         // Skip whitespace
-                        while pos < xref_section.len() && (xref_section[pos] as char).is_whitespace() {
+                        while pos < xref_section.len()
+                            && (xref_section[pos] as char).is_whitespace()
+                        {
                             pos += 1;
                         }
 
@@ -85,17 +90,24 @@ impl XrefTable {
                         let entry_parts: Vec<&str> = entry_line.split_whitespace().collect();
 
                         if entry_parts.len() >= 3 {
-                            if let (Ok(offset), Ok(generation_num)) = (
-                                entry_parts[0].parse::<u64>(),
-                                entry_parts[1].parse::<u16>()
-                            ) {
+                            if let (Ok(offset), Ok(generation_num)) =
+                                (entry_parts[0].parse::<u64>(), entry_parts[1].parse::<u16>())
+                            {
                                 let in_use = entry_parts[2] == "n";
-                                entries.insert(start + i as u32, XrefEntry { offset, generation: generation_num, in_use });
+                                entries.insert(
+                                    start + i as u32,
+                                    XrefEntry {
+                                        offset,
+                                        generation: generation_num,
+                                        in_use,
+                                    },
+                                );
                             }
                         }
 
                         // Move to next line
-                        pos += xref_section[pos..].iter()
+                        pos += xref_section[pos..]
+                            .iter()
                             .position(|&b| b == b'\n' || b == b'\r')
                             .unwrap_or(xref_section.len() - pos);
                         pos += 1;
@@ -131,13 +143,17 @@ fn parse_trailer(data: &[u8]) -> Result<HashMap<String, String>> {
             None
         }
     }) {
-        if let Some(dict_end) = data[dict_start..].iter().position(|&b| b == b'>').and_then(|pos| {
-            if data[dict_start + pos..].starts_with(b">>") {
-                Some(dict_start + pos)
-            } else {
-                None
-            }
-        }) {
+        if let Some(dict_end) = data[dict_start..]
+            .iter()
+            .position(|&b| b == b'>')
+            .and_then(|pos| {
+                if data[dict_start + pos..].starts_with(b">>") {
+                    Some(dict_start + pos)
+                } else {
+                    None
+                }
+            })
+        {
             let dict_content = String::from_utf8_lossy(&data[dict_start..dict_end]);
 
             // Parse simple key-value pairs

@@ -1,6 +1,6 @@
 pub mod error;
 pub mod lexer;
-pub mod xref;
 pub mod objects;
+pub mod xref;
 
 pub use error::{PdfError, Result};
