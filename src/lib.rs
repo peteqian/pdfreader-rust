@@ -1,3 +1,4 @@
+pub mod content;
 pub mod error;
 pub mod lexer;
 pub mod objects;

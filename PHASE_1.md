@@ -6,12 +6,13 @@ Read and parse a PDF file. Extract the basic structure: header, cross-reference 
 
 ## Deliverables
 
-- [ ] Parse PDF header (`%PDF-1.x`)
-- [ ] Implement basic lexer to tokenize PDF content
-- [ ] Parse cross-reference (xref) table
-- [ ] Extract trailer dictionary and root object reference
-- [ ] Resolve objects via xref offsets
-- [ ] Handle basic PDF object types (numbers, names, strings, arrays, dictionaries)
+- [x] Parse PDF header (`%PDF-1.x`)
+- [x] Implement basic lexer to tokenize PDF content
+- [x] Parse cross-reference (xref) table
+- [x] Extract trailer dictionary and root object reference
+- [x] Resolve objects via xref offsets
+- [x] Handle basic PDF object types (numbers, names, strings, arrays, dictionaries)
+- [x] Add a content-extraction pass that walks page content streams and emits tokens to interpret text/drawing commands.
 
 ## Steps
 
@@ -20,9 +21,3 @@ Read and parse a PDF file. Extract the basic structure: header, cross-reference 
 3. Implement xref parser
 4. Build object resolver
 5. Write tests with a sample PDF
-
-## Next Steps
-
-1. Enhance `xref::parse_trailer` to parse nested trailer dictionaries so Trailer output shows real key/value structure.
-2. Resolve indirect `/Length` (and other metadata) references when reading streams to handle objects whose lengths live in separate objects.
-3. Add a content-extraction pass that walks page content streams and emits tokens so we can start interpreting text and drawing commands.

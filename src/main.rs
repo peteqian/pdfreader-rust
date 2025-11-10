@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::env;
 use std::fs;
 
+use pdfreader::content::{PageText, extract_text};
 use pdfreader::objects::{self, Object};
 use pdfreader::xref::XrefTable;
 use pipeline::{Pipeline, PipelineLog, finalize_log};
@@ -81,6 +82,9 @@ fn main() {
             print_xref_summary(&doc.xref_table);
             print_trailer(&doc.trailer);
             print_object_summary(&doc.objects);
+
+            let page_text = extract_text(&doc.objects);
+            print_page_text(&page_text);
         }
         Err(err) => {
             eprintln!("Error: {}", err);
@@ -174,6 +178,23 @@ fn print_object_summary(objects: &HashMap<u32, Object>) {
     }
     if objects.len() > 8 {
         println!("  ...");
+    }
+}
+
+fn print_page_text(pages: &[PageText]) {
+    if pages.is_empty() {
+        println!("\nExtracted text: (none)");
+        return;
+    }
+
+    println!("\nExtracted text ({} page objects):", pages.len());
+    for page in pages.iter().take(3) {
+        println!("-- Page object {} --", page.page_id);
+        println!("{}", page.text.trim());
+        println!();
+    }
+    if pages.len() > 3 {
+        println!("... ({} more pages)", pages.len() - 3);
     }
 }
 
