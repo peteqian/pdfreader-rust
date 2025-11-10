@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
+use pdfreader::content::PageText;
 use pdfreader::objects::Object;
 use pdfreader::xref::XrefTable;
 
@@ -12,6 +13,7 @@ pub struct PdfDocument {
     pub xref_table: XrefTable,
     pub trailer: HashMap<String, String>,
     pub objects: HashMap<u32, Object>,
+    pub pages: Vec<PageText>,
 }
 
 pub struct PipelineLog {
@@ -67,6 +69,7 @@ pub struct PartialDocument {
     pub xref_table: Option<XrefTable>,
     pub trailer: Option<HashMap<String, String>>,
     pub objects: Option<HashMap<u32, Object>>,
+    pub pages: Vec<PageText>,
 }
 
 impl<'a> PipelineState<'a> {
@@ -97,6 +100,7 @@ impl<'a> PipelineState<'a> {
                 .doc
                 .objects
                 .ok_or_else(|| "Object stage did not run".to_string())?,
+            pages: self.doc.pages,
         })
     }
 }

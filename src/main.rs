@@ -1,23 +1,28 @@
+mod exporters;
 mod pipeline;
 
 use std::collections::HashMap;
 use std::env;
 use std::fs;
 
-use pdfreader::content::{PageText, extract_text};
+use pdfreader::content::{extract_text, PageText};
 use pdfreader::objects::{self, Object};
 use pdfreader::xref::XrefTable;
+use exporters::create_exporter;
 use pipeline::{Pipeline, PipelineLog, finalize_log};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
-        eprintln!("Usage: {} <pdf-file>", args[0]);
+        eprintln!("Usage: {} <pdf-file> [--format <format>]", args[0]);
+        eprintln!();
+        eprintln!("Formats: json, markdown, plaintext (default)");
         std::process::exit(1);
     }
 
     let pdf_path = &args[1];
+    let export_format = parse_export_format(&args);
     println!("PDF Math Recognition Library");
     println!("Phase 1: Reading a PDF\n");
     println!("File: {}", pdf_path);
@@ -64,6 +69,17 @@ fn main() {
         state.doc.objects = Some(objects);
         Ok(())
     });
+    pipeline.add_stage("content", |state, log| {
+        let objects = state
+            .doc
+            .objects
+            .as_ref()
+            .ok_or_else(|| "Objects must be parsed before content extraction".to_string())?;
+        let pages = extract_text(objects);
+        log.info(format!("Extracted text from {} pages", pages.len()));
+        state.doc.pages = pages;
+        Ok(())
+    });
 
     let result = pipeline.run();
 
@@ -83,8 +99,16 @@ fn main() {
             print_trailer(&doc.trailer);
             print_object_summary(&doc.objects);
 
-            let page_text = extract_text(&doc.objects);
-            print_page_text(&page_text);
+            // Export in the requested format
+            let exporter = create_exporter(&export_format);
+            let exported = exporter.export(&doc);
+
+            // Write exported content to file
+            let export_path = derive_export_path(pdf_path, &export_format);
+            match fs::write(&export_path, &exported) {
+                Ok(()) => println!("\n✓ Exported to {} (format: {})", export_path, export_format),
+                Err(err) => eprintln!("Failed to write export file: {}", err),
+            }
         }
         Err(err) => {
             eprintln!("Error: {}", err);
@@ -216,4 +240,43 @@ fn describe_object(object: &Object) -> String {
         }
         Object::Reference(obj, generation) => format!("Reference {} {} R", obj, generation),
     }
+}
+
+/// Parses the --format flag from command line arguments.
+///
+/// Returns the export format name, defaulting to "plaintext" if not specified.
+fn parse_export_format(args: &[String]) -> String {
+    for i in 0..args.len() - 1 {
+        if args[i] == "--format" {
+            return args[i + 1].clone();
+        }
+    }
+    "plaintext".to_string()
+}
+
+/// Derives the export file path from the PDF path and format.
+///
+/// Exports are written to the same directory as the input PDF.
+///
+/// Examples:
+/// - "test-data/document.pdf" with "json" → "test-data/document.json"
+/// - "test-data/document.pdf" with "markdown" → "test-data/document.md"
+/// - "test-data/document.pdf" with "plaintext" → "test-data/document.txt"
+fn derive_export_path(pdf_path: &str, format: &str) -> String {
+    let path = std::path::Path::new(pdf_path);
+    let parent = path.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let stem = path.file_stem().unwrap_or_default().to_string_lossy();
+
+    let format_lower = format.to_lowercase();
+    let extension = match format_lower.as_str() {
+        "json" => "json",
+        "markdown" | "md" => "md",
+        "plaintext" | "text" | "txt" => "txt",
+        other => other,
+    };
+
+    parent
+        .join(format!("{}.{}", stem, extension))
+        .to_string_lossy()
+        .to_string()
 }
