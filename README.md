@@ -7,6 +7,18 @@
 - Detect and reconstruct mathematical structures (superscripts, fractions, matrices, radicals)
 - Export to MathML or LaTeX
 
+## Installation
+
+1. Install the Rust toolchain (`rustup` recommended).
+2. Clone this repository locally.
+3. Build and install the CLI with Cargo:
+
+```bash
+cargo install --path .
+```
+
+This places the `pdfreader` binary in your Cargo bin directory (usually `~/.cargo/bin`).
+
 ## Building and Running
 
 Build the project:
@@ -23,3 +35,7 @@ cargo run -- test-data/manuscript-test.pdf
 ```
 
 Every run flows through a simple `Pipeline` (header → xref → objects) and produces a `.log` file beside the input PDF so you can inspect exactly which stage succeeded/failed before chaining the results into future Markdown/JSON converters.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
