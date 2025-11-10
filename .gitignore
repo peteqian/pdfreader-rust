@@ -27,6 +27,9 @@ target
 
 # AI
 .claude/
+Claude.md
+AGENTS.md
+Agents.md
 
 # Genreal Files
 *.log
