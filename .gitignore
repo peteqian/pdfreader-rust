@@ -24,3 +24,10 @@ target
 # Added by cargo
 
 /target
+
+# Genreal Files
+*.log
+
+# Test
+test/**/*.txt
+test/**/*.json
