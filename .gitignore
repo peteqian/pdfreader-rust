@@ -25,6 +25,9 @@ target
 
 /target
 
+# AI
+.claude/
+
 # Genreal Files
 *.log
 

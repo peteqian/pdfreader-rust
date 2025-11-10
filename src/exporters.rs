@@ -6,9 +6,6 @@ use crate::pipeline::PdfDocument;
 pub trait Exporter {
     /// Exports the PDF document to a formatted string.
     fn export(&self, pdf: &PdfDocument) -> String;
-
-    /// Returns the name of this exporter format.
-    fn format_name(&self) -> &'static str;
 }
 
 /// Exports PDF content as plain text (just the extracted text, no metadata).
@@ -24,10 +21,6 @@ impl Exporter for PlainTextExporter {
         }
 
         output
-    }
-
-    fn format_name(&self) -> &'static str {
-        "plaintext"
     }
 }
 
@@ -56,10 +49,6 @@ impl Exporter for MarkdownExporter {
         }
 
         output
-    }
-
-    fn format_name(&self) -> &'static str {
-        "markdown"
     }
 }
 
@@ -96,10 +85,6 @@ impl Exporter for JsonExporter {
 
         output.push('}');
         output
-    }
-
-    fn format_name(&self) -> &'static str {
-        "json"
     }
 }
 
@@ -148,13 +133,8 @@ mod tests {
 
     #[test]
     fn test_create_exporter() {
-        let json = create_exporter("json");
-        assert_eq!(json.format_name(), "json");
-
-        let md = create_exporter("markdown");
-        assert_eq!(md.format_name(), "markdown");
-
-        let txt = create_exporter("plaintext");
-        assert_eq!(txt.format_name(), "plaintext");
+        let _json = create_exporter("json");
+        let _md = create_exporter("markdown");
+        let _txt = create_exporter("plaintext");
     }
 }

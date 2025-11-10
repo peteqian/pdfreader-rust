@@ -143,6 +143,17 @@ impl<'a, 'log> Pipeline<'a, 'log> {
 
 pub fn finalize_log(pdf_path: &str, log: &PipelineLog) {
     let log_path = derive_log_path(pdf_path);
+
+    // Ensure parent directory exists
+    if let Some(parent) = log_path.parent() {
+        if !parent.as_os_str().is_empty() {
+            if let Err(err) = std::fs::create_dir_all(parent) {
+                eprintln!("Failed to create log directory: {}", err);
+                return;
+            }
+        }
+    }
+
     match log.write_to(&log_path) {
         Ok(()) => println!("Detailed log written to {}", log_path.display()),
         Err(err) => eprintln!("Failed to write log file: {}", err),
